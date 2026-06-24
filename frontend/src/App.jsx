@@ -1,6 +1,6 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
-import { initTelegram } from './utils/telegram.js'
+import { initTelegram, getStartParam, resolveStartParamPath } from './utils/telegram.js'
 import BottomNav from './components/BottomNav.jsx'
 import Home from './pages/Home.jsx'
 import CreateMission from './pages/CreateMission.jsx'
@@ -15,9 +15,23 @@ const HIDE_NAV_PATHS = ['/mission/', '/creator/', '/wallet', '/requests']
 
 export default function App() {
   const location = useLocation()
+  const navigate = useNavigate()
   const hideNav = HIDE_NAV_PATHS.some(p => location.pathname.startsWith(p))
 
-  useEffect(() => { initTelegram() }, [])
+  useEffect(() => {
+    initTelegram()
+
+    // 딥링크(startapp=mission_xxx, startapp=creator_xxx)로 들어온 경우
+    // 해당 라우트로 이동. 항상 "/" 에서 시작하는 첫 진입에서만 처리한다.
+    if (location.pathname === '/') {
+      const startParam = getStartParam()
+      const path = resolveStartParamPath(startParam)
+      if (path) {
+        navigate(path, { replace: true })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
