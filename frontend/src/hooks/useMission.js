@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getMission } from '../utils/api.js'
 
+function normalizeMission(data) {
+  if (!data) return data
+  return {
+    ...data,
+    current_ton: parseFloat(data.current_ton) || 0,
+    goal_ton: parseFloat(data.goal_ton) || 0,
+    winner_count: parseInt(data.winner_count) || 0,
+  }
+}
+
 export function useMission(id) {
   const [mission, setMission] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -11,7 +21,7 @@ export function useMission(id) {
     try {
       setLoading(true)
       const data = await getMission(id)
-      setMission(data)
+      setMission(normalizeMission(data))
     } catch (e) {
       setError(e.message)
     } finally {
@@ -21,7 +31,6 @@ export function useMission(id) {
 
   useEffect(() => { fetch() }, [fetch])
 
-  // Poll every 10s if active
   useEffect(() => {
     if (!mission || mission.status !== 'active') return
     const interval = setInterval(fetch, 10000)
@@ -32,12 +41,14 @@ export function useMission(id) {
 }
 
 export function useMissionProgress(mission) {
-  if (!mission) return { pct: 0, remaining: 0, done: false }
-  const pct = Math.min(100, (parseFloat(mission.current_ton) / parseFloat(mission.goal_ton)) * 100)
-  const remaining = Math.max(0, parseFloat(mission.goal_ton) - parseFloat(mission.current_ton))
+  if (!mission) return { pct: 0, remaining: '0.00', done: false }
+  const current = parseFloat(mission.current_ton) || 0
+  const goal = parseFloat(mission.goal_ton) || 0
+  const pct = goal > 0 ? Math.min(100, Math.round((current / goal) * 100 * 10) / 10) : 0
+  const remaining = Math.max(0, goal - current).toFixed(2)
   return {
-    pct: Math.round(pct * 10) / 10,
-    remaining: remaining.toFixed(2),
+    pct,
+    remaining,
     done: mission.status === 'completed'
   }
 }
