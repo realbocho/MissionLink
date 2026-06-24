@@ -133,10 +133,19 @@ export default function MissionDetail() {
 
       {/* Header */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16 }}>
-        <Avatar user={mission.creator} size={44} />
+        <div
+          onClick={() => navigate(`/creator/${mission.creator_id}`)}
+          style={{ cursor: 'pointer', flexShrink: 0 }}
+        >
+          <Avatar user={mission.creator} size={44} />
+        </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12, color: 'var(--tg-hint)' }}>
+          <div
+            onClick={() => navigate(`/creator/${mission.creator_id}`)}
+            style={{ fontSize: 12, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+          >
             {mission.creator?.username ? `@${mission.creator.username}` : mission.creator?.first_name}
+            <span style={{ fontSize: 10, opacity: 0.7 }}>›</span>
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3 }}>{mission.title}</h1>
         </div>
@@ -289,9 +298,18 @@ export default function MissionDetail() {
         </div>
       )}
 
-      <button className="btn-secondary" onClick={handleShare} style={{ marginBottom: 12 }}>
-        🔗 Copy Mission Link
-      </button>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button className="btn-secondary" onClick={handleShare} style={{ flex: 1 }}>
+          🔗 Copy Mission Link
+        </button>
+        <button
+          className="btn-secondary"
+          onClick={() => { haptic('light'); navigate(`/creator/${mission.creator_id}`) }}
+          style={{ flex: 1 }}
+        >
+          👤 View Profile
+        </button>
+      </div>
 
       {isCreator && mission.status === 'active' && (
         <button
