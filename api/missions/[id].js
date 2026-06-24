@@ -1,17 +1,19 @@
 import { supabase } from '../../lib/supabase.js'
 import { withAuth } from '../../lib/auth.js'
+import { validateTelegramInitData } from '../../lib/telegram.js'
 
-export default withAuth(async (req, res) => {
+export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return res.status(200).end()
+
   const { id } = req.query
-  const tgUser = req.telegramUser
 
-  // GET - single mission with full details
+  // GET - public, no auth required
   if (req.method === 'GET') {
     const { data: mission, error } = await supabase
       .from('missions')
       .select(`
         *,
-        creator:users!creator_id(id, username, first_name, photo_url),
+        creator:users!creator_id(id, username, first_name, photo_url, ton_wallet),
         tiers(*),
         donations(
           id, amount_ton, message, status, created_at,
@@ -23,16 +25,20 @@ export default withAuth(async (req, res) => {
 
     if (error) return res.status(404).json({ error: 'Mission not found' })
 
-    // Filter only confirmed donations for display
-    mission.donations = mission.donations
+    mission.donations = (mission.donations || [])
       .filter(d => d.status === 'confirmed')
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
     return res.status(200).json(mission)
   }
 
-  // PATCH - update mission (creator only)
+  // PATCH - auth required
   if (req.method === 'PATCH') {
+    const initData = req.headers['x-telegram-init-data']
+    if (!initData) return res.status(401).json({ error: 'Unauthorized' })
+    const tgUser = validateTelegramInitData(initData)
+    if (!tgUser) return res.status(401).json({ error: 'Invalid auth' })
+
     const { data: mission } = await supabase
       .from('missions')
       .select('creator_id')
@@ -40,7 +46,9 @@ export default withAuth(async (req, res) => {
       .single()
 
     if (!mission) return res.status(404).json({ error: 'Not found' })
-    if (mission.creator_id !== tgUser.id) return res.status(403).json({ error: 'Forbidden' })
+    if (String(mission.creator_id) !== String(tgUser.id)) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
 
     const { title, description, status } = req.body
     const updates = {}
@@ -60,4 +68,4 @@ export default withAuth(async (req, res) => {
   }
 
   return res.status(405).json({ error: 'Method not allowed' })
-})
+}
