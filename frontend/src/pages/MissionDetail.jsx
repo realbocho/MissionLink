@@ -6,6 +6,7 @@ import ProgressBar from '../components/ProgressBar.jsx'
 import Avatar from '../components/Avatar.jsx'
 import { createDonation } from '../utils/api.js'
 import { haptic, showAlert, showConfirm, getMissionDeepLink, copyToClipboard, getTgUser } from '../utils/telegram.js'
+import { buildCommentPayload } from '../utils/tonPayload.js'
 
 const PLATFORM_WALLET = 'UQAfdeijx6QgEcO97eVfSsTYtC20_-bfLePj7Bl2162XIkjG'
 const PLATFORM_FEE = 0.10
@@ -58,12 +59,12 @@ export default function MissionDetail() {
           {
             address: mission.creator.ton_wallet,
             amount: creatorNano,
-            payload: btoa(`missionlink:${id}`)
+            payload: buildCommentPayload(`missionlink:${id}`)
           },
           {
             address: PLATFORM_WALLET,
             amount: feeNano,
-            payload: btoa(`fee:${id}`)
+            payload: buildCommentPayload(`fee:${id}`)
           }
         ]
       })
