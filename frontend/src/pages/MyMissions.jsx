@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMissions, getMe } from '../utils/api.js'
+import api from '../utils/api.js'
 import MissionCard from '../components/MissionCard.jsx'
 import { getTgUser, copyToClipboard, haptic, showAlert, getCreatorDeepLink } from '../utils/telegram.js'
 
@@ -8,6 +9,7 @@ export default function MyMissions() {
   const navigate = useNavigate()
   const [missions, setMissions] = useState([])
   const [user, setUser] = useState(null)
+  const [pendingCount, setPendingCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const tgUser = getTgUser()
 
@@ -15,9 +17,14 @@ export default function MyMissions() {
     if (!tgUser) return
     Promise.all([
       getMissions({ creator_id: tgUser.id }),
-      getMe()
+      getMe(),
+      api.get('/requests')
     ])
-      .then(([m, u]) => { setMissions(m); setUser(u) })
+      .then(([m, u, requests]) => {
+        setMissions(m)
+        setUser(u)
+        setPendingCount(requests.filter(r => r.status === 'pending').length)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -55,7 +62,7 @@ export default function MyMissions() {
         )}
       </div>
 
-      {/* Wallet status banner */}
+      {/* Wallet status */}
       <div
         onClick={() => navigate('/wallet')}
         style={{
@@ -63,7 +70,7 @@ export default function MyMissions() {
           padding: '12px 14px', borderRadius: 'var(--radius-sm)',
           background: hasWallet ? '#10b98111' : '#ef444411',
           border: `1px solid ${hasWallet ? '#10b98133' : '#ef444433'}`,
-          marginBottom: 16, cursor: 'pointer'
+          marginBottom: 10, cursor: 'pointer'
         }}
       >
         <span style={{ fontSize: 22 }}>{hasWallet ? '✅' : '⚠️'}</span>
@@ -74,10 +81,42 @@ export default function MyMissions() {
           <div style={{ fontSize: 12, color: 'var(--tg-hint)' }}>
             {hasWallet
               ? `${user.ton_wallet.slice(0, 8)}...${user.ton_wallet.slice(-6)}`
-              : 'Tap to add your TON wallet and start receiving donations'
-            }
+              : 'Tap to add your TON wallet'}
           </div>
         </div>
+        <span style={{ color: 'var(--tg-hint)', fontSize: 18 }}>›</span>
+      </div>
+
+      {/* Mission Requests banner */}
+      <div
+        onClick={() => navigate('/requests')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '12px 14px', borderRadius: 'var(--radius-sm)',
+          background: pendingCount > 0 ? '#8b5cf611' : 'var(--tg-secondary-bg)',
+          border: `1px solid ${pendingCount > 0 ? '#8b5cf644' : 'rgba(255,255,255,0.06)'}`,
+          marginBottom: 16, cursor: 'pointer'
+        }}
+      >
+        <span style={{ fontSize: 22 }}>📬</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>Mission Requests</div>
+          <div style={{ fontSize: 12, color: 'var(--tg-hint)' }}>
+            {pendingCount > 0
+              ? `${pendingCount} pending request${pendingCount > 1 ? 's' : ''} waiting for you`
+              : 'No pending requests'}
+          </div>
+        </div>
+        {pendingCount > 0 && (
+          <div style={{
+            background: 'var(--accent)', color: 'white',
+            fontSize: 12, fontWeight: 700,
+            width: 22, height: 22, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            {pendingCount}
+          </div>
+        )}
         <span style={{ color: 'var(--tg-hint)', fontSize: 18 }}>›</span>
       </div>
 
