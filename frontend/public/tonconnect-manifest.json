@@ -1,7 +1,7 @@
 {
-  "url": "https://missionlink.vercel.app",
+  "url": "https://your-vercel-url.vercel.app",
   "name": "MissionLink",
-  "iconUrl": "https://missionlink.vercel.app/icon.png",
-  "termsOfUseUrl": "https://missionlink.vercel.app/terms",
-  "privacyPolicyUrl": "https://missionlink.vercel.app/privacy"
+  "iconUrl": "https://your-vercel-url.vercel.app/icon.png",
+  "termsOfUseUrl": "https://your-vercel-url.vercel.app/terms",
+  "privacyPolicyUrl": "https://your-vercel-url.vercel.app/privacy"
 }
