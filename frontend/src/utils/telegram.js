@@ -64,13 +64,15 @@ export function setBackButton(onClick) {
 }
 
 export function getMissionDeepLink(missionId) {
-  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MissionLinkBot'
-  return `https://t.me/${botUsername}?startapp=mission_${missionId}`
+  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MissionLink_Bot'
+  const appName = import.meta.env.VITE_APP_NAME || 'MissionLink'
+  return `https://t.me/${botUsername}/${appName}?startapp=mission_${missionId}`
 }
 
 export function getCreatorDeepLink(creatorId) {
-  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MissionLinkBot'
-  return `https://t.me/${botUsername}?startapp=creator_${creatorId}`
+  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MissionLink_Bot'
+  const appName = import.meta.env.VITE_APP_NAME || 'MissionLink'
+  return `https://t.me/${botUsername}/${appName}?startapp=creator_${creatorId}`
 }
 
 export function copyToClipboard(text) {
