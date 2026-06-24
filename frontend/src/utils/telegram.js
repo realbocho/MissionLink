@@ -7,6 +7,33 @@ export function initTelegram() {
   tg.enableClosingConfirmation()
 }
 
+// startapp=... 으로 들어온 딥링크 파라미터를 가져온다.
+// 텔레그램은 https://t.me/Bot/App?startapp=XXX 로 열었을 때
+// initDataUnsafe.start_param 에 XXX 를 넣어준다.
+// (일반 브라우저 테스트용으로 ?tgWebAppStartParam= / ?startapp= 쿼리도 fallback으로 지원)
+export function getStartParam() {
+  if (tg?.initDataUnsafe?.start_param) {
+    return tg.initDataUnsafe.start_param
+  }
+  const params = new URLSearchParams(window.location.search)
+  return params.get('tgWebAppStartParam') || params.get('startapp') || null
+}
+
+// start_param 을 실제 라우트 경로로 변환한다.
+// mission_<id>  -> /mission/<id>
+// creator_<id>  -> /creator/<id>
+export function resolveStartParamPath(startParam) {
+  if (!startParam) return null
+
+  const missionMatch = startParam.match(/^mission_(.+)$/)
+  if (missionMatch) return `/mission/${missionMatch[1]}`
+
+  const creatorMatch = startParam.match(/^creator_(.+)$/)
+  if (creatorMatch) return `/creator/${creatorMatch[1]}`
+
+  return null
+}
+
 export function getTgUser() {
   return tg?.initDataUnsafe?.user || null
 }
