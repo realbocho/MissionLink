@@ -63,7 +63,7 @@ export default function CreateMission() {
       const mission = await createMission({
         title: form.title.trim(), description: form.description.trim(),
         goal_ton: parseFloat(form.goal_ton),
-        winner_count: parseInt(form.winner_count) || 1,
+        winner_count: form.winner_count === '' ? 1 : parseInt(form.winner_count),
         weighted: form.weighted,
         tiers: useTiers ? form.tiers.filter(t => t.name && t.amount_ton) : []
       })
