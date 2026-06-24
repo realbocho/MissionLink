@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { getMissions } from '../utils/api.js'
 import MissionCard from '../components/MissionCard.jsx'
 import Avatar from '../components/Avatar.jsx'
-import { copyToClipboard, haptic, showAlert, getCreatorDeepLink } from '../utils/telegram.js'
+import { copyToClipboard, haptic, showAlert, getCreatorDeepLink, getTgUser } from '../utils/telegram.js'
 
 export default function CreatorProfile() {
   const { creatorId } = useParams()
@@ -12,6 +12,8 @@ export default function CreatorProfile() {
   const [creator, setCreator] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('active')
+  const tgUser = getTgUser()
+  const isOwnProfile = tgUser && String(tgUser.id) === String(creatorId)
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp
@@ -43,7 +45,7 @@ export default function CreatorProfile() {
 
   const active = missions.filter(m => m.status === 'active')
   const completed = missions.filter(m => m.status === 'completed')
-  const totalRaised = missions.reduce((s, m) => s + parseFloat(m.current_ton || 0), 0).toFixed(2)
+  const totalRaised = missions.reduce((s, m) => s + (parseFloat(m.current_ton) || 0), 0).toFixed(2)
 
   return (
     <div className="page" style={{ paddingTop: 12 }}>
@@ -83,8 +85,7 @@ export default function CreatorProfile() {
         <button
           onClick={handleShareProfile}
           style={{
-            marginTop: 14,
-            background: 'var(--tg-secondary-bg)',
+            marginTop: 14, background: 'var(--tg-secondary-bg)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 10, padding: '9px 20px',
             color: 'var(--tg-text)', fontSize: 13, fontWeight: 600,
@@ -94,6 +95,28 @@ export default function CreatorProfile() {
           🔗 Copy Profile Link
         </button>
       </div>
+
+      {/* REQUEST MISSION BUTTON — only for fans, not own profile */}
+      {!isOwnProfile && (
+        <div
+          onClick={() => navigate(`/creator/${creatorId}/request`)}
+          style={{
+            background: 'linear-gradient(135deg, var(--accent), var(--accent-2, #ec4899))',
+            borderRadius: 'var(--radius)',
+            padding: '20px 20px',
+            marginBottom: 20,
+            cursor: 'pointer',
+            textAlign: 'center',
+            boxShadow: '0 4px 24px rgba(139,92,246,0.3)'
+          }}
+        >
+          <div style={{ fontSize: 28, marginBottom: 6 }}>📬</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>Request a Mission</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>
+            Tell the creator what you want them to do!
+          </div>
+        </div>
+      )}
 
       {loading && <div className="spinner" />}
 
@@ -108,8 +131,7 @@ export default function CreatorProfile() {
         <>
           <div style={{
             display: 'flex', gap: 8, marginBottom: 16,
-            background: 'var(--tg-secondary-bg)',
-            borderRadius: 10, padding: 4
+            background: 'var(--tg-secondary-bg)', borderRadius: 10, padding: 4
           }}>
             {[
               { key: 'active', label: `Live (${active.length})` },
