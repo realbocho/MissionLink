@@ -3,14 +3,20 @@ import { withCronAuth } from '../../lib/auth.js'
 import { verifyTransaction, tonToNano } from '../../lib/ton.js'
 import { sendTelegramMessage } from '../../lib/telegram.js'
 
-const CREATOR_WALLET = process.env.CREATOR_WALLET_ADDRESS || ''
-
 export default withCronAuth(async (req, res) => {
   const results = { verified: 0, failed: 0, missions_completed: 0 }
 
+  // Include creator's ton_wallet via the mission → creator join so we can
+  // verify against the correct per-mission address instead of a shared env var.
   const { data: pending } = await supabase
     .from('donations')
-    .select('*, mission:missions(id, goal_ton, current_ton, status, creator_id, title, winner_count, weighted)')
+    .select(`
+      *,
+      mission:missions(
+        id, goal_ton, current_ton, status, creator_id, title, winner_count, weighted,
+        creator:users!creator_id(ton_wallet)
+      )
+    `)
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
     .limit(50)
@@ -20,8 +26,25 @@ export default withCronAuth(async (req, res) => {
   }
 
   for (const donation of pending) {
-    const expectedNano = tonToNano(donation.amount_ton)
-    const verification = await verifyTransaction(donation.tx_hash, CREATOR_WALLET, expectedNano)
+    // Bug fix 1 – use THIS mission's creator wallet, not a single shared env var.
+    const creatorWallet = donation.mission?.creator?.ton_wallet || ''
+
+    if (!creatorWallet) {
+      // Can't verify without a destination address; skip and wait.
+      continue
+    }
+
+    // Bug fix 2 – verify against creator_amount_ton (90 %), which is the actual
+    // value that lands in the creator's wallet, not the full 100 % amount_ton.
+    const amountToVerify = donation.creator_amount_ton ?? donation.amount_ton
+    const expectedNano = tonToNano(amountToVerify)
+
+    const verification = await verifyTransaction(
+      donation.tx_hash,
+      creatorWallet,
+      expectedNano,
+      donation.created_at   // passed to ton.js for time-window fallback matching
+    )
 
     if (verification && verification.valid) {
       await supabase.from('donations').update({ status: 'confirmed' }).eq('id', donation.id)
@@ -33,12 +56,14 @@ export default withCronAuth(async (req, res) => {
         results.missions_completed++
       }
     } else if (verification === null) {
+      // null = tx not found yet; only expire after 1 hour
       const ageMs = Date.now() - new Date(donation.created_at).getTime()
       if (ageMs > 60 * 60 * 1000) {
         await supabase.from('donations').update({ status: 'failed' }).eq('id', donation.id)
         results.failed++
       }
     } else {
+      // valid: false = tx found but amount/address mismatch → mark failed immediately
       await supabase.from('donations').update({ status: 'failed' }).eq('id', donation.id)
       results.failed++
     }
