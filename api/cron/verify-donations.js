@@ -13,7 +13,7 @@ export default withCronAuth(async (req, res) => {
     .select(`
       *,
       mission:missions(
-        id, goal_ton, current_ton, status, creator_id, title, winner_count, weighted,
+        id, goal_ton, current_ton, status, creator_id, title, winner_count, weighted, description,
         creator:users!creator_id(ton_wallet)
       )
     `)
@@ -103,7 +103,7 @@ async function completeMission(mission) {
         donorId,
         `🎉 <b>Mission Achieved!</b>\n\n` +
         `<b>${mission.title}</b> has been fully funded!\n\n` +
-        `${mission.description}\n\n` +
+        `${mission.description ? mission.description + '\n\n' : ''}` +
         `Thank you for your support! 💜`
       )
     }
