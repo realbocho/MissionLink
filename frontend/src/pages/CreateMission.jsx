@@ -36,7 +36,7 @@ export default function CreateMission() {
   const [useTiers, setUseTiers] = useState(false)
   const [form, setForm] = useState({
     title: '', description: '', goal_ton: '',
-    winner_count: '1', weighted: true, tiers: DEFAULT_TIERS
+    winner_count: '', weighted: true, tiers: DEFAULT_TIERS
   })
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function CreateMission() {
       const mission = await createMission({
         title: form.title.trim(), description: form.description.trim(),
         goal_ton: parseFloat(form.goal_ton),
-        winner_count: form.winner_count === '' ? 1 : parseInt(form.winner_count),
+        winner_count: form.winner_count === '' ? 0 : parseInt(form.winner_count),
         weighted: form.weighted,
         tiers: useTiers ? form.tiers.filter(t => t.name && t.amount_ton) : []
       })
