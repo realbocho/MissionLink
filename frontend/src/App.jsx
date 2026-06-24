@@ -8,10 +8,14 @@ import MissionDetail from './pages/MissionDetail.jsx'
 import MyMissions from './pages/MyMissions.jsx'
 import CreatorProfile from './pages/CreatorProfile.jsx'
 import WalletSettings from './pages/WalletSettings.jsx'
+import RequestMission from './pages/RequestMission.jsx'
+import IncomingRequests from './pages/IncomingRequests.jsx'
+
+const HIDE_NAV_PATHS = ['/mission/', '/creator/', '/wallet', '/requests']
 
 export default function App() {
   const location = useLocation()
-  const hideNav = ['/mission/', '/creator/', '/wallet'].some(p => location.pathname.startsWith(p))
+  const hideNav = HIDE_NAV_PATHS.some(p => location.pathname.startsWith(p))
 
   useEffect(() => { initTelegram() }, [])
 
@@ -23,7 +27,9 @@ export default function App() {
         <Route path="/mission/:id" element={<MissionDetail />} />
         <Route path="/my" element={<MyMissions />} />
         <Route path="/creator/:creatorId" element={<CreatorProfile />} />
+        <Route path="/creator/:creatorId/request" element={<RequestMission />} />
         <Route path="/wallet" element={<WalletSettings />} />
+        <Route path="/requests" element={<IncomingRequests />} />
       </Routes>
       {!hideNav && <BottomNav />}
     </>
