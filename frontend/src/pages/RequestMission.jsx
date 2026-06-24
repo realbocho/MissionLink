@@ -12,7 +12,6 @@ export default function RequestMission() {
 
   const handleSubmit = async () => {
     if (!content.trim()) return showAlert('Please describe the mission you want!')
-    if (content.trim().length < 10) return showAlert('Please be more specific (at least 10 characters)')
 
     haptic('medium')
     setLoading(true)
@@ -66,7 +65,7 @@ export default function RequestMission() {
       <button
         className="btn-primary"
         onClick={handleSubmit}
-        disabled={loading || content.trim().length < 10}
+        disabled={loading || !content.trim()}
       >
         {loading ? 'Sending...' : '📬 Send Request'}
       </button>
