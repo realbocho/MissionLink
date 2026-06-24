@@ -50,7 +50,7 @@ export default withAuth(async (req, res) => {
         title,
         description,
         goal_ton: parseFloat(goal_ton),
-        winner_count: parseInt(winner_count) || 1,
+        winner_count: winner_count === undefined ? 1 : parseInt(winner_count),
         weighted: weighted !== false
       })
       .select()
