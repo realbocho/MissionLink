@@ -116,7 +116,7 @@ export default function CreateMission() {
       <div className="card">
         <div className="label">Number of Winners</div>
         <input className="input" type="number" placeholder="1" value={form.winner_count} onChange={e => set('winner_count', e.target.value)} min="0" />
-        <div style={{ fontSize: 12, color: 'var(--tg-hint)', marginTop: 6 }}>Set to 0 to reward all supporters</div>
+        <div style={{ fontSize: 12, color: 'var(--tg-hint)', marginTop: 6 }}>Set to 0 to reward all supporters (or leave blank for random draw)</div>
       </div>
 
       <div className="card">
