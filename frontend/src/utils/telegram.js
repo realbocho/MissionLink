@@ -12,7 +12,15 @@ export function getTgUser() {
 }
 
 export function haptic(type = 'light') {
-  tg?.HapticFeedback?.impactOccurred(type)
+  try {
+    const impact = ['light', 'medium', 'heavy', 'rigid', 'soft']
+    const notification = ['success', 'error', 'warning']
+    if (impact.includes(type)) {
+      tg?.HapticFeedback?.impactOccurred(type)
+    } else if (notification.includes(type)) {
+      tg?.HapticFeedback?.notificationOccurred(type)
+    }
+  } catch {}
 }
 
 export function showAlert(msg) {
